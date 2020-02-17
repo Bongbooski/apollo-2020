@@ -16,6 +16,7 @@ const Container = styled.div`
 
 const Column = styled.div`
   margin-left: 10px;
+  width: 50%;
 `;
 
 const Title = styled.h1`
@@ -36,36 +37,50 @@ const Poster = styled.div`
   width: 25%;
   height: 60%;
   background-color: transparent;
+  background-image: url(${props => props.bg});
+  background-size: cover;
+  background-position: center center;
 `;
 
 const GET_MOVIE = gql`
   query getMovie($id: Int!) {
     get_movie(id: $id) {
+      id
       title
       medium_cover_image
       description_intro
       language
       rating
+      isLiked @client
+    }
+    suggestions(id: $id) {
+      id
+      medium_cover_image
     }
   }
 `;
 
 export default () => {
-  let { id } = useParams();
-  id = parseInt(id);
+  const { id } = useParams();
   const { loading, data } = useQuery(GET_MOVIE, {
-    variables: { id }
+    variables: { id: parseInt(id) }
   });
 
-  console.log(data);
   return (
     <Container>
       <Column>
-        <Title>Name</Title>
-        <Subtitle>English · 4.5</Subtitle>
-        <Description>lorem ipsum lalalla </Description>
+        <Title>
+          {loading
+            ? "Loading..."
+            : `${data.get_movie.title} ${data.get_movie.isLiked ? "❤️" : "😭"}`}
+        </Title>
+        <Subtitle>
+          {data?.get_movie?.language} · {data?.get_movie?.rating}
+        </Subtitle>
+        <Description>{data?.get_movie?.description_intro}</Description>
       </Column>
-      <Poster></Poster>
+      <Poster bg={data?.get_movie?.medium_cover_image}></Poster>
+      {/* {data?.suggestions?} */}
     </Container>
   );
 };
